@@ -111,4 +111,74 @@ class DocumentCleaner:
             return True
 
 
-        return False
+        return False 
+            def _clean_dates(self, paragraph: Paragraph) -> None:
+        """
+        Remove date/time patterns from every run.
+        """
+
+        for run in paragraph.runs:
+
+            if not run.text:
+                continue
+
+            matches = DATE_PATTERN.findall(run.text)
+
+            if matches:
+                self.stats.dates_removed += len(matches)
+                run.text = DATE_PATTERN.sub("", run.text)
+
+
+    def _normalize_spaces(self, paragraph: Paragraph) -> None:
+        """
+        Normalize multiple spaces while preserving runs.
+        """
+
+        changed = False
+
+        for run in paragraph.runs:
+
+            if not run.text:
+                continue
+
+            new_text = MULTIPLE_SPACE_PATTERN.sub(" ", run.text)
+
+            if new_text != run.text:
+                run.text = new_text
+                changed = True
+
+        if changed:
+            self.stats.spaces_fixed += 1
+
+
+    def _clear_paragraph(self, paragraph: Paragraph) -> None:
+        """
+        Clear paragraph text but keep paragraph structure.
+        """
+
+        for run in paragraph.runs:
+            run.text = ""
+
+        if not paragraph.runs:
+            paragraph.add_run("")
+
+
+    def reset_statistics(self) -> None:
+        """
+        Reset statistics before processing another document.
+        """
+
+        self.stats = Statistics()
+
+
+    def get_statistics(self) -> Statistics:
+        """
+        Return statistics object.
+        """
+
+        return self.stats
+
+
+    @property
+    def statistics(self) -> Statistics:
+        return self.stats
