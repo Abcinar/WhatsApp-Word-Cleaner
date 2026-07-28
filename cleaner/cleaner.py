@@ -111,8 +111,12 @@ class DocumentCleaner:
             return True
 
 
-        return False 
-            def _clean_dates(self, paragraph: Paragraph) -> None:
+                return False
+
+def _clean_dates(self, paragraph: Paragraph) -> None:
+        """
+        Remove date/time patterns from every run.
+        """
         """
         Remove date/time patterns from every run.
         """
