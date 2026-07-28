@@ -1,43 +1,63 @@
-import re
+from docx import Document
 
 from cleaner.patterns import (
     DATE_PATTERN,
     LINE_NUMBER_PATTERN,
     MULTIPLE_SPACE_PATTERN,
 )
+from cleaner.statistics import Statistics
 
 
-class Cleaner:
+class DocumentCleaner:
 
     def __init__(self):
-        self.stats = {
-            "dates_removed": 0,
-            "numbers_removed": 0,
-            "spaces_fixed": 0,
-        }
+        self.stats = Statistics()
 
-    def clean_text(self, text: str) -> str:
+    def clean(self, document: Document) -> Document:
 
-        # WhatsApp tarihlerini sil
-        dates = DATE_PATTERN.findall(text)
+        previous_blank = False
 
-        if dates:
-            self.stats["dates_removed"] += len(dates)
-            text = DATE_PATTERN.sub("", text)
+        for paragraph in document.paragraphs:
 
-        # Tek başına duran sıra numaralarını sil
-        if LINE_NUMBER_PATTERN.fullmatch(text.strip()):
-            self.stats["numbers_removed"] += 1
-            return ""
+            self.stats.paragraphs_processed += 1
 
-        # Fazla boşlukları düzelt
-        fixed = MULTIPLE_SPACE_PATTERN.sub(" ", text)
+            text = paragraph.text
 
-        if fixed != text:
-            self.stats["spaces_fixed"] += 1
+            # Tarihleri sil (run biçimlendirmesini korumak için run bazında)
+            for run in paragraph.runs:
+                matches = DATE_PATTERN.findall(run.text)
 
-        return fixed.strip()
+                if matches:
+                    self.stats.dates_removed += len(matches)
+                    run.text = DATE_PATTERN.sub("", run.text)
 
-    def get_stats(self):
+            # Paragraf metnini yeniden değerlendir
+            text = paragraph.text.strip()
 
-        return self.stats
+            # Tek başına duran numaraları sil
+            if LINE_NUMBER_PATTERN.fullmatch(text):
+                paragraph.clear()
+                self.stats.numbers_removed += 1
+                previous_blank = True
+                continue
+
+            # Fazla boşlukları düzelt
+            new_text = MULTIPLE_SPACE_PATTERN.sub(" ", paragraph.text)
+
+            if new_text != paragraph.text:
+                self.stats.spaces_fixed += 1
+
+                # Run'lar yerine paragrafı yeniden yazıyoruz.
+                # (İçinde tarih olmayan normal metinlerde sorun oluşturmaz.)
+                paragraph.clear()
+                paragraph.add_run(new_text.strip())
+
+            # Boş satır sayımı
+            if paragraph.text.strip() == "":
+                if previous_blank:
+                    self.stats.blank_lines_removed += 1
+                previous_blank = True
+            else:
+                previous_blank = False
+
+        return document
