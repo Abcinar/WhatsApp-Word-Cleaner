@@ -141,3 +141,106 @@ class DocumentCleaner:
             return True
 
         return False
+    # ---------------------------------------------------------
+    # CLEANING METHODS
+    # ---------------------------------------------------------
+
+    def _remove_dates(
+        self,
+        paragraph: Paragraph,
+    ) -> None:
+        """
+        Remove WhatsApp date/time patterns.
+        """
+
+        for run in paragraph.runs:
+
+            if not run.text:
+                continue
+
+            matches = DATE_PATTERN.findall(run.text)
+
+            if matches:
+
+                self.stats.dates_removed += len(matches)
+
+                run.text = DATE_PATTERN.sub(
+                    "",
+                    run.text,
+                )
+
+    def _remove_zero_width(
+        self,
+        paragraph: Paragraph,
+    ) -> None:
+        """
+        Remove invisible unicode characters.
+        """
+
+        for run in paragraph.runs:
+
+            if not run.text:
+                continue
+
+            matches = ZERO_WIDTH_PATTERN.findall(
+                run.text
+            )
+
+            if matches:
+
+                self.stats.zero_width_removed += len(matches)
+
+                run.text = ZERO_WIDTH_PATTERN.sub(
+                    "",
+                    run.text,
+                )
+
+    def _normalize_spaces(
+        self,
+        paragraph: Paragraph,
+    ) -> None:
+        """
+        Replace multiple spaces with one space.
+        """
+
+        changed = False
+
+        for run in paragraph.runs:
+
+            if not run.text:
+                continue
+
+            new_text = MULTIPLE_SPACE_PATTERN.sub(
+                " ",
+                run.text,
+            )
+
+            new_text = new_text.strip()
+
+            if new_text != run.text:
+
+                run.text = new_text
+
+                changed = True
+
+        if changed:
+
+            self.stats.spaces_fixed += 1
+
+    def _clear_paragraph(
+        self,
+        paragraph: Paragraph,
+    ) -> None:
+        """
+        Remove every run text.
+        """
+
+        if not paragraph.runs:
+
+            paragraph.add_run("")
+
+            return
+
+        for run in paragraph.runs:
+
+            run.text = ""
