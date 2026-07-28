@@ -244,3 +244,39 @@ class DocumentCleaner:
         for run in paragraph.runs:
 
             run.text = ""
+             # ---------------------------------------------------------
+    # STATISTICS
+    # ---------------------------------------------------------
+
+    def reset_statistics(self) -> None:
+        """
+        Reset cleaning statistics.
+        """
+
+        self.stats.reset()
+
+    def get_statistics(self) -> Statistics:
+        """
+        Return statistics object.
+        """
+
+        return self.stats
+
+    @property
+    def statistics(self) -> Statistics:
+        """
+        Statistics property.
+        """
+
+        return self.stats
+
+    # ---------------------------------------------------------
+    # REPORT
+    # ---------------------------------------------------------
+
+    def print_summary(self) -> None:
+        """
+        Print cleaning summary.
+        """
+
+        print(self.stats)
