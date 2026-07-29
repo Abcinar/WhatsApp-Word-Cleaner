@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "whatsapp-word-cleaner"
+version = "1.0.0"
+description = "Clean and preprocess exported WhatsApp Word (.docx) documents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+authors = [
+    {name = "Abdullah Çınar"}
+]
+
+keywords = [
+    "whatsapp",
+    "word",
+    "docx",
+    "python",
+    "cleaner",
+    "text-cleaning"
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
+dependencies = [
+    "python-docx>=1.1.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Abcinar/WhatsApp-Word-Cleaner"
+Repository = "https://github.com/Abcinar/WhatsApp-Word-Cleaner"
+Issues = "https://github.com/Abcinar/WhatsApp-Word-Cleaner/issues"
