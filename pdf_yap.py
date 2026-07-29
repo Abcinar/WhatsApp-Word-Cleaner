@@ -1,8 +1,11 @@
 import subprocess
 import os
 from docx import Document
-from cleaner import DocumentCleaner # Kendi yazdığın sınıf
+# ESKİ HALİ (Hatalı olan):
+from cleaner import DocumentCleaner
 
+# YENİ HALİ (Bununla değiştir):
+from cleaner.cleaner import DocumentCleaner
 def convert_to_pdf_linux(docx_path, output_dir):
     """LibreOffice kullanarak docx'i pdf'e çevirir (Linux/Codespaces için)"""
     print(f"PDF'e dönüştürülüyor: {docx_path}")
