@@ -6,7 +6,7 @@
  License : MIT
 ==========================================================
 """
-
+from docx.text.run import Run
 from __future__ import annotations
 
 from collections.abc import Iterator
@@ -99,15 +99,18 @@ class DocumentCleaner:
     # ---------------------------------------------------------
 
     def _iter_runs(
-        self,
-        paragraph: Paragraph,
-    ):
-        """
-        Iterate over non-empty runs.
-        """
-        for run in paragraph.runs:
-            if run.text:
-                yield run
+    self,
+    paragraph: Paragraph,
+) -> Iterator[Run]:
+    """
+    Iterate over non-empty runs.
+    """
+
+    for run in paragraph.runs:
+
+        if run.text:
+
+            yield run
 
     # ---------------------------------------------------------
     # PARAGRAPH CLEANER
@@ -140,7 +143,65 @@ class DocumentCleaner:
     # ---------------------------------------------------------
     # CLEANING METHODS
     # ---------------------------------------------------------
+# ---------------------------------------------------------
+# CLEANING METHODS
+# ---------------------------------------------------------
 
+def _replace_pattern(
+    self,
+    paragraph: Paragraph,
+    pattern,
+    counter_name: str,
+) -> None:
+    """
+    Replace regex matches inside paragraph runs.
+    """
+
+    removed = 0
+
+    for run in self._iter_runs(paragraph):
+
+        matches = pattern.findall(run.text)
+
+        if not matches:
+            continue
+
+        removed += len(matches)
+
+        run.text = pattern.sub("", run.text)
+
+    if removed:
+
+        setattr(
+            self.stats,
+            counter_name,
+            getattr(self.stats, counter_name) + removed,
+        )
+
+def _remove_dates(
+    self,
+    paragraph: Paragraph,
+) -> None:
+
+    self._replace_pattern(
+        paragraph,
+        DATE_PATTERN,
+        "dates_removed",
+    )
+
+def _remove_zero_width(
+    self,
+    paragraph: Paragraph,
+) -> None:
+
+    self._replace_pattern(
+        paragraph,
+        ZERO_WIDTH_PATTERN,
+        "zero_width_removed",
+    )
+
+def _normalize_spaces(
+    ...
     def _remove_dates(
         self,
         paragraph: Paragraph,
