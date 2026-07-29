@@ -85,10 +85,12 @@ input_file = docx_files[0]
 
         print("Saving...")
 
-        output = DocumentWriter.write(
-            document,
-            DEFAULT_OUTPUT_FILE,
-        )
+        output_file = OUTPUT_DIR / f"{input_file.stem}_cleaned.docx"
+
+output = DocumentWriter.write(
+    document,
+    output_file,
+)
 
         print("\nDone.\n")
 
