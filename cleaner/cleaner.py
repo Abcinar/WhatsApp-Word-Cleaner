@@ -31,7 +31,6 @@ class DocumentCleaner:
     """
 
     def __init__(self):
-
         self.stats = Statistics()
 
     # ---------------------------------------------------------
@@ -42,13 +41,10 @@ class DocumentCleaner:
         """
         Clean complete document.
         """
-
         previous_blank = False
 
         for paragraph in self._iter_paragraphs(document):
-
             self.stats.paragraphs_processed += 1
-
             previous_blank = self._clean_paragraph(
                 paragraph,
                 previous_blank,
@@ -64,7 +60,6 @@ class DocumentCleaner:
         self,
         document: Document,
     ) -> Iterator[Paragraph]:
-
         # Normal paragraphs
         for paragraph in document.paragraphs:
             yield paragraph
@@ -75,7 +70,6 @@ class DocumentCleaner:
 
         # Headers / Footers
         for section in document.sections:
-
             for paragraph in section.header.paragraphs:
                 yield paragraph
 
@@ -86,15 +80,21 @@ class DocumentCleaner:
         self,
         table: Table,
     ) -> Iterator[Paragraph]:
-
         for row in table.rows:
-
             for cell in row.cells:
-
                 yield from self._iter_cell(cell)
 
     def _iter_cell(
-         # ---------------------------------------------------------
+        self,
+        cell: _Cell,
+    ) -> Iterator[Paragraph]:
+        for paragraph in cell.paragraphs:
+            yield paragraph
+
+        for table in cell.tables:
+            yield from self._iter_table(table)
+
+    # ---------------------------------------------------------
     # RUN ITERATOR
     # ---------------------------------------------------------
 
@@ -105,21 +105,9 @@ class DocumentCleaner:
         """
         Iterate over non-empty runs.
         """
-
         for run in paragraph.runs:
-
             if run.text:
-
                 yield run
-        self,
-        cell: _Cell,
-    ) -> Iterator[Paragraph]:
-
-        for paragraph in cell.paragraphs:
-            yield paragraph
-
-        for table in cell.tables:
-            yield from self._iter_table(table)
 
     # ---------------------------------------------------------
     # PARAGRAPH CLEANER
@@ -130,34 +118,25 @@ class DocumentCleaner:
         paragraph: Paragraph,
         previous_blank: bool,
     ) -> bool:
-
         self._remove_dates(paragraph)
-
         self._remove_zero_width(paragraph)
-
         self._normalize_spaces(paragraph)
 
         text = paragraph.text.strip()
 
         if LINE_NUMBER_PATTERN.fullmatch(text):
-
             self._clear_paragraph(paragraph)
-
             self.stats.numbers_removed += 1
-
             return True
 
         if paragraph.text.strip() == "":
-
             if previous_blank:
-
                 self._clear_paragraph(paragraph)
-
                 self.stats.blank_lines_removed += 1
-
             return True
 
         return False
+
     # ---------------------------------------------------------
     # CLEANING METHODS
     # ---------------------------------------------------------
@@ -169,18 +148,13 @@ class DocumentCleaner:
         """
         Remove WhatsApp date/time patterns.
         """
-
         for run in paragraph.runs:
-
             if not run.text:
                 continue
 
             matches = DATE_PATTERN.findall(run.text)
-
             if matches:
-
                 self.stats.dates_removed += len(matches)
-
                 run.text = DATE_PATTERN.sub(
                     "",
                     run.text,
@@ -193,20 +167,13 @@ class DocumentCleaner:
         """
         Remove invisible unicode characters.
         """
-
         for run in paragraph.runs:
-
             if not run.text:
                 continue
 
-            matches = ZERO_WIDTH_PATTERN.findall(
-                run.text
-            )
-
+            matches = ZERO_WIDTH_PATTERN.findall(run.text)
             if matches:
-
                 self.stats.zero_width_removed += len(matches)
-
                 run.text = ZERO_WIDTH_PATTERN.sub(
                     "",
                     run.text,
@@ -219,11 +186,9 @@ class DocumentCleaner:
         """
         Replace multiple spaces with one space.
         """
-
         changed = False
 
         for run in paragraph.runs:
-
             if not run.text:
                 continue
 
@@ -231,17 +196,13 @@ class DocumentCleaner:
                 " ",
                 run.text,
             )
-
             new_text = new_text.strip()
 
             if new_text != run.text:
-
                 run.text = new_text
-
                 changed = True
 
         if changed:
-
             self.stats.spaces_fixed += 1
 
     def _clear_paragraph(
@@ -251,17 +212,14 @@ class DocumentCleaner:
         """
         Remove every run text.
         """
-
         if not paragraph.runs:
-
             paragraph.add_run("")
-
             return
 
         for run in paragraph.runs:
-
             run.text = ""
-             # ---------------------------------------------------------
+
+    # ---------------------------------------------------------
     # STATISTICS
     # ---------------------------------------------------------
 
@@ -269,14 +227,12 @@ class DocumentCleaner:
         """
         Reset cleaning statistics.
         """
-
         self.stats.reset()
 
     def get_statistics(self) -> Statistics:
         """
         Return statistics object.
         """
-
         return self.stats
 
     @property
@@ -284,7 +240,6 @@ class DocumentCleaner:
         """
         Statistics property.
         """
-
         return self.stats
 
     # ---------------------------------------------------------
@@ -295,5 +250,4 @@ class DocumentCleaner:
         """
         Print cleaning summary.
         """
-
         print(self.stats)
