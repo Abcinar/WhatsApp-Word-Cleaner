@@ -48,18 +48,28 @@ def main() -> int:
 
     prepare_directories()
 
-    input_file = Path(DEFAULT_INPUT_FILE)
+   # Input klasöründeki ilk .docx dosyasını bul
+docx_files = sorted(INPUT_DIR.glob("*.docx"))
 
-    if not input_file.exists():
+if not docx_files:
 
-        print("\nInput file not found:")
-        print(input_file)
+    print("\nNo .docx file found in input folder.")
 
-        print("\nPlease copy your WhatsApp Word file to:")
+    print("\nPlease copy your Word document to:")
 
-        print(INPUT_DIR)
+    print(INPUT_DIR)
 
-        return 1
+    return 1
+
+if len(docx_files) > 1:
+
+    print("\nERROR")
+    print("More than one .docx file found.")
+    print("Please leave only one document inside the input folder.")
+
+    return 1
+
+input_file = docx_files[0]
 
     try:
 
