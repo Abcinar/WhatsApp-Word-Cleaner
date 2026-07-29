@@ -6,7 +6,7 @@
  License : MIT
 ==========================================================
 """
-from docx.text.run import Run
+
 from __future__ import annotations
 
 from collections.abc import Iterator
@@ -14,6 +14,8 @@ from collections.abc import Iterator
 from docx.document import Document
 from docx.table import _Cell, Table
 from docx.text.paragraph import Paragraph
+from docx.shared import Pt
+from docx.enum.text import WD_LINE_SPACING
 
 from cleaner.patterns import (
     DATE_PATTERN,
@@ -32,6 +34,11 @@ class DocumentCleaner:
 
     def __init__(self):
         self.stats = Statistics()
+        
+        # --- Config Toggles ---
+        self.normalize_paragraph_spacing = True
+        self.normalize_line_spacing = True
+        self.remove_extra_blank_paragraphs = True
 
     # ---------------------------------------------------------
     # PUBLIC
@@ -99,18 +106,15 @@ class DocumentCleaner:
     # ---------------------------------------------------------
 
     def _iter_runs(
-    self,
-    paragraph: Paragraph,
-) -> Iterator[Run]:
-    """
-    Iterate over non-empty runs.
-    """
-
-    for run in paragraph.runs:
-
-        if run.text:
-
-            yield run
+        self,
+        paragraph: Paragraph,
+    ):
+        """
+        Iterate over non-empty runs.
+        """
+        for run in paragraph.runs:
+            if run.text:
+                yield run
 
     # ---------------------------------------------------------
     # PARAGRAPH CLEANER
@@ -124,17 +128,21 @@ class DocumentCleaner:
         self._remove_dates(paragraph)
         self._remove_zero_width(paragraph)
         self._normalize_spaces(paragraph)
+        
+        # Paragraf ve satır aralığı boşluklarını normalleştir
+        if self.normalize_paragraph_spacing or self.normalize_line_spacing:
+            self._normalize_spacing(paragraph)
 
         text = paragraph.text.strip()
 
         if LINE_NUMBER_PATTERN.fullmatch(text):
-            self._clear_paragraph(paragraph)
+            self._delete_paragraph(paragraph)
             self.stats.numbers_removed += 1
             return True
 
-        if paragraph.text.strip() == "":
-            if previous_blank:
-                self._clear_paragraph(paragraph)
+        if not text:
+            if previous_blank and self.remove_extra_blank_paragraphs:
+                self._delete_paragraph(paragraph)
                 self.stats.blank_lines_removed += 1
             return True
 
@@ -143,65 +151,7 @@ class DocumentCleaner:
     # ---------------------------------------------------------
     # CLEANING METHODS
     # ---------------------------------------------------------
-# ---------------------------------------------------------
-# CLEANING METHODS
-# ---------------------------------------------------------
 
-def _replace_pattern(
-    self,
-    paragraph: Paragraph,
-    pattern,
-    counter_name: str,
-) -> None:
-    """
-    Replace regex matches inside paragraph runs.
-    """
-
-    removed = 0
-
-    for run in self._iter_runs(paragraph):
-
-        matches = pattern.findall(run.text)
-
-        if not matches:
-            continue
-
-        removed += len(matches)
-
-        run.text = pattern.sub("", run.text)
-
-    if removed:
-
-        setattr(
-            self.stats,
-            counter_name,
-            getattr(self.stats, counter_name) + removed,
-        )
-
-def _remove_dates(
-    self,
-    paragraph: Paragraph,
-) -> None:
-
-    self._replace_pattern(
-        paragraph,
-        DATE_PATTERN,
-        "dates_removed",
-    )
-
-def _remove_zero_width(
-    self,
-    paragraph: Paragraph,
-) -> None:
-
-    self._replace_pattern(
-        paragraph,
-        ZERO_WIDTH_PATTERN,
-        "zero_width_removed",
-    )
-
-def _normalize_spaces(
-    ...
     def _remove_dates(
         self,
         paragraph: Paragraph,
@@ -265,20 +215,32 @@ def _normalize_spaces(
 
         if changed:
             self.stats.spaces_fixed += 1
+            
+    def _normalize_spacing(
+        self, 
+        paragraph: Paragraph,
+    ) -> None:
+        """
+        Normalize paragraph spacing and line spacing.
+        """
+        fmt = paragraph.paragraph_format
+        
+        if self.normalize_paragraph_spacing:
+            fmt.space_before = Pt(0)
+            fmt.space_after = Pt(0)
+            
+        if self.normalize_line_spacing:
+            fmt.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    def _clear_paragraph(
+    def _delete_paragraph(
         self,
         paragraph: Paragraph,
     ) -> None:
         """
-        Remove every run text.
+        Completely remove the paragraph element from the Word document.
         """
-        if not paragraph.runs:
-            paragraph.add_run("")
-            return
-
-        for run in paragraph.runs:
-            run.text = ""
+        p = paragraph._element
+        p.getparent().remove(p)
 
     # ---------------------------------------------------------
     # STATISTICS
