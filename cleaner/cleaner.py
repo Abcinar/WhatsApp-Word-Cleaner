@@ -94,6 +94,23 @@ class DocumentCleaner:
                 yield from self._iter_cell(cell)
 
     def _iter_cell(
+         # ---------------------------------------------------------
+    # RUN ITERATOR
+    # ---------------------------------------------------------
+
+    def _iter_runs(
+        self,
+        paragraph: Paragraph,
+    ):
+        """
+        Iterate over non-empty runs.
+        """
+
+        for run in paragraph.runs:
+
+            if run.text:
+
+                yield run
         self,
         cell: _Cell,
     ) -> Iterator[Paragraph]:
