@@ -1,11 +1,10 @@
 import subprocess
 import os
 from docx import Document
-# ESKİ HALİ (Hatalı olan):
-from cleaner import DocumentCleaner
 
-# YENİ HALİ (Bununla değiştir):
+# Eski hatalı satır tamamen silindi, sadece doğru olan kaldı:
 from cleaner.cleaner import DocumentCleaner
+
 def convert_to_pdf_linux(docx_path, output_dir):
     """LibreOffice kullanarak docx'i pdf'e çevirir (Linux/Codespaces için)"""
     print(f"PDF'e dönüştürülüyor: {docx_path}")
