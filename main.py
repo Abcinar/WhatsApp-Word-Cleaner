@@ -7,14 +7,11 @@
 ==========================================================
 """
 
-from pathlib import Path
 import sys
 
 from cleaner.config import (
     APP_NAME,
     APP_VERSION,
-    DEFAULT_INPUT_FILE,
-    DEFAULT_OUTPUT_FILE,
     INPUT_DIR,
     OUTPUT_DIR,
     LOG_DIR,
@@ -48,28 +45,26 @@ def main() -> int:
 
     prepare_directories()
 
-   # Input klasöründeki ilk .docx dosyasını bul
-docx_files = sorted(INPUT_DIR.glob("*.docx"))
+    # Input klasöründeki ilk .docx dosyasını bul
+    docx_files = sorted(INPUT_DIR.glob("*.docx"))
 
-if not docx_files:
+    if not docx_files:
 
-    print("\nNo .docx file found in input folder.")
+        print("\nNo .docx file found in input folder.")
+        print("\nPlease copy your Word document to:")
+        print(INPUT_DIR)
 
-    print("\nPlease copy your Word document to:")
+        return 1
 
-    print(INPUT_DIR)
+    if len(docx_files) > 1:
 
-    return 1
+        print("\nERROR")
+        print("More than one .docx file found.")
+        print("Please leave only one document inside the input folder.")
 
-if len(docx_files) > 1:
+        return 1
 
-    print("\nERROR")
-    print("More than one .docx file found.")
-    print("Please leave only one document inside the input folder.")
-
-    return 1
-
-input_file = docx_files[0]
+    input_file = docx_files[0]
 
     try:
 
@@ -87,10 +82,10 @@ input_file = docx_files[0]
 
         output_file = OUTPUT_DIR / f"{input_file.stem}_cleaned.docx"
 
-output = DocumentWriter.write(
-    document,
-    output_file,
-)
+        output = DocumentWriter.write(
+            document,
+            output_file,
+        )
 
         print("\nDone.\n")
 
